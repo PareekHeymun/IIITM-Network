@@ -1,2 +1,2 @@
 # IIITM-Network
-The network of IIIT Gwalior
+The network of IIIT Gwalior.
