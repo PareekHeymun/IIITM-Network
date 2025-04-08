@@ -12,7 +12,7 @@ This project is an ERP system designed for students and teachers of IIITM Gwalio
 - **Cloud Firestore** for dynamic data (attendance tracking, notifications).
 - **Firebase Cloud Functions** for server-side logic and enhanced security.
 - **Static Content Hosting** for branch-specific timetables.
-- 
+- **Critical.txt**
 ### Frontend
 - **React with Lazy Loading** using `React.lazy` and `Suspense` for efficient component management.
 - **Error Boundaries** for graceful error handling.
