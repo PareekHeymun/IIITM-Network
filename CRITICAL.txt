@@ -1,0 +1,201 @@
+In package.json:
+"lint": "eslint ./src"
+"postinstall": "npm audit"
+In index.html:
+1. <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';">
+2. device to device favicon
+<link rel="icon" type="image/png" sizes="32x32" href="%PUBLIC_URL%/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="%PUBLIC_URL%/favicon-16x16.png" />
+3. Error Handling: using noscript
+<noscript>This app requires Javascript to be enabled</noscript>
+In robots.txt
+User-agent: *
+Disallow: /admin/
+Disallow: /student-records/
+Disallow: /financial/
+Allow login or help pages by:
+Allow: /login/
+Allow: /help/
+Crawlers should not index internal search results pages
+Disallow: /search/
+Check for sitemap ref for indexing of allowed pages by search engines
+
+Test the rules from:
+1. Google Search Console
+2. Robots.txt tester
+
+manifest.json
+Optimise icons
+{
+  "src": "logo128.png",
+  "type": "image/png",
+  "sizes": "128x128"
+},
+{
+  "src": "logo256.png",
+  "type": "image/png",
+  "sizes": "256x256"
+}
+For different resolutions
+Set a start_url, to lets say - dashboard?
+"start_url": "/dashboard"
+Also, what will be the orientaton?
+Scope customisation - "scope": "/"
+UI team to work on manifest.json properly
+add "categories" - better discoverability
+add "permissions"
+display as fullscreen
+please work from seo point of view as well
+work on App.css
+
+App.js
+1. Lazy loading
+Use React.lazy and Suspense to avoid loading componets unnecessarily until
+they are neededimport React, { Suspense } from "react";
+const SignupPage = React.lazy(() => import("./pages/signup.jsx"));
+const SigninPage = React.lazy(() => import("./pages/signin.jsx"));
+
+function App() {
+  return (
+    <div className="App">
+      <Suspense fallback={<div>Loading...</div>}>
+        <SignupPage />
+        <SigninPage />
+      </Suspense>
+    </div>
+  );
+}
+
+export default App;
+Error handling for lazy loading
+import ErrorBoundary from "./components/ErrorBoundary";
+
+function App() {
+  return (
+    <div className="App">
+      <ErrorBoundary>
+        <Suspense fallback={<div>Loading...</div>}>
+          <SignupPage />
+          <SigninPage />
+        </Suspense>
+      </ErrorBoundary>
+    </div>
+  );
+}
+export default App;
+
+Explore react-router-dom
+organise main directory
+
+app.test.js
+1. correct rendering
+test('renders SignupPage and SigninPage components', () => {
+  render(<App />);
+  expect(screen.getByText(/signup/i)).toBeInTheDocument();
+  expect(screen.getByText(/signin/i)).toBeInTheDocument();
+});
+
+dependency check critical
+jest.mock('firebase/auth', () => ({
+  getAuth: jest.fn(() => ({
+    currentUser: null,
+  })),
+}));
+check for beforeEach -> redundancy reduction
+use cleanup from @testing-library/react
+
+FIREBASE.JS (HIGH CRITICAL PRIORITY)
+1. Avoid hardcoding sensitive api keys
+import { initializeApp } from 'firebase/app';
+
+const firebaseConfig = {
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  databaseURL: process.env.REACT_APP_FIREBASE_DATABASE_URL,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+};
+
+const app = initializeApp(firebaseConfig);
+export default app;
+
+Set up env instead:
+For example - REACT_APP_FIREBASE_API_KEY = whatever I want here, like I
+will put my api key here...
+VERY VERY IMP NOTE: .env files are not to be commited -> add to .gitignore
+
+Use modular firebase usage please
+For scalability
+
+mock firebase config during unit testing using jest
+error handling using try catch for initialise firebase
+
+Report web vitals - seo managing guys please note.
+Signin.jsx
+Please debounce input changes to prevent excessive
+re-renders and improve performance --> seo guys 
+use lodash library
+context sensitive alerts if username incorrect or password incorrect
+are alert pop ups good or console.log? 
+
+Loading indicator during sign in
+lets say the user has clicked on sign in 
+but the api key loading is still in progress
+to handle this edge case:
+const [isLoading, setIsLoading] = useState(false);
+
+const signInUser = async () => {
+  setIsLoading(true);
+  try {
+    const collectionRef = collection(firestore, 'usernames');
+    const q = query(collectionRef, where("username", "==", username));
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      await signInWithEmailAndPassword(auth, snapshot.docs[0].data().email, password);
+      alert('Success');
+    } else {
+      alert('Wrong Username');
+    }
+  } catch (err) {
+    alert('Error signing in. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
+return (
+  <button onClick={signInUser} disabled={isLoading}>
+    {isLoading ? 'Signing In...' : 'Sign-In'}
+  </button>
+);
+
+Now we need to address this issue also:
+Avoid hardcoding sensitive user logic like username 
+lookups in the front-end. Instead, handle such
+ logic server-side (e.g., using Firebase Functions)
+ and let the client only deal with the final
+ signInWithEmailAndPassword function for
+ security reasons. This will prevent
+ malicious users from reverse-engineering your app.
+
+USE FORM TAG PLS in HTML
+Please setup screen readers functionality -> for example
+in html we have the strong tab, aria-label etc
+setErrorMessage()
+
+HASH PASSWORDS WHEN STORING TO THE DATABASE!!!!!!!
+Avoid user checks in front end -> keep it to backend
+otherwise it is easier to rev-engineer!
+-> keep it to server side
+weak password checks necessary!
+disable signup for loading like the above example I gave
+disable that button during loading
+form validation -> all fields are required edge case!
+wrap inputs using form tag
+
+set up a firebase function instead of getDocs to improve 
+performance
+explore sentry
+
+
